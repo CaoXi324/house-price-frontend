@@ -14,7 +14,8 @@ import {
   Container, 
   Typography, 
   Paper,
-  Box 
+  Box, 
+  Button
 } from "@mui/material";
 
 interface CsvChartProps {
@@ -74,6 +75,18 @@ const CsvChart: React.FC<CsvChartProps> = ({startDate, endDate, selectedStates, 
     fetchData();
   }, [startDate, endDate, selectedStates, selectedRegions]);
 
+  const handleDownload = () => {
+    const csvString = Papa.unparse(chartData);
+    const blob = new Blob([csvString], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", "filtered_data.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <Container maxWidth="lg">
       <Box sx={{ my: 4 }}>
@@ -81,6 +94,14 @@ const CsvChart: React.FC<CsvChartProps> = ({startDate, endDate, selectedStates, 
           House Price Trends
         </Typography>
         <Paper elevation={3} sx={{ p: 3 }}>
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={handleDownload}
+            sx={{ mb: 3 }}
+          >
+            Download Data
+          </Button>
           <ResponsiveContainer width="100%" height={500}>
             <LineChart data={chartData}>
               <CartesianGrid strokeDasharray="3 3" />

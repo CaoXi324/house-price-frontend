@@ -1,5 +1,5 @@
 import './App.css'
-import CsvChart from './components/Chart'
+import CsvLineChart from './components/LineChart'
 import StateAndRegionSelector from './components/StateAndRegionSelector'
 import DateRangePickerWithMonths from './components/DatePicker'
 import 'react-datepicker/dist/react-datepicker.css';
@@ -25,7 +25,7 @@ function App() {
         onStartDateChange={setStartDate} 
         onEndDateChange={setEndDate}
       />
-      <CsvChart 
+      <CsvLineChart 
         selectedStates={selectedStates}
         selectedRegions={selectedRegions}
         startDate={startDate}

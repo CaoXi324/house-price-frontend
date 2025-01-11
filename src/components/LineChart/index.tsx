@@ -17,17 +17,19 @@ import {
   Box, 
   Button
 } from "@mui/material";
+import BarChartComponent from "../BarChart";
 
-interface CsvChartProps {
+interface CsvLineChartProps {
   startDate: Date;
   endDate: Date;
   selectedStates: string[];
   selectedRegions: string[];
 }
 
-const CsvChart: React.FC<CsvChartProps> = ({startDate, endDate, selectedStates, selectedRegions}) => {
+const CsvLineChart: React.FC<CsvLineChartProps> = ({startDate, endDate, selectedStates, selectedRegions}) => {
   const [chartData, setChartData] = useState<any[]>([]);
   const [regions, setRegions] = useState<string[]>([]);
+  const [selectedMonths, setSelectedMonths] = useState<string[]>([]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -87,6 +89,25 @@ const CsvChart: React.FC<CsvChartProps> = ({startDate, endDate, selectedStates, 
     document.body.removeChild(link);
   };
 
+  const toggleMonthSelection = (month: string) => {
+    setSelectedMonths((prev) =>
+      prev.includes(month)
+        ? prev.filter((m) => m !== month)
+        : [...prev, month]
+    );
+  };
+
+  const handleXAxisClick = (event: any) => {
+    const month = event?.activeLabel;
+    if (month) {
+      toggleMonthSelection(month);
+    }
+  };
+
+  const filteredData = chartData.filter((data) =>
+    selectedMonths.includes(data.month)
+  );
+
   return (
     <Container maxWidth="lg">
       <Box sx={{ my: 4 }}>
@@ -103,7 +124,7 @@ const CsvChart: React.FC<CsvChartProps> = ({startDate, endDate, selectedStates, 
             Download Data
           </Button>
           <ResponsiveContainer width="100%" height={500}>
-            <LineChart data={chartData}>
+            <LineChart data={chartData} onClick={handleXAxisClick}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="month" />
               <YAxis />
@@ -121,9 +142,10 @@ const CsvChart: React.FC<CsvChartProps> = ({startDate, endDate, selectedStates, 
             </LineChart>
           </ResponsiveContainer>
         </Paper>
+        <BarChartComponent data={filteredData} regions={regions} />
       </Box>
     </Container>
   );
 };
 
-export default CsvChart;
+export default CsvLineChart;

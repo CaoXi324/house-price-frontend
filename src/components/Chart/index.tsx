@@ -22,24 +22,20 @@ const CsvChart: React.FC = () => {
   const [regions, setRegions] = useState<string[]>([]);
 
   useEffect(() => {
-    // Load CSV data
     const fetchData = async () => {
       const response = await fetch("/data1.csv");
       const csvText = await response.text();
 
-      // Parse CSV
       Papa.parse(csvText, {
-        header: true, // Use the first row as headers
-        dynamicTyping: true, // Convert numeric strings to numbers
+        header: true,
+        dynamicTyping: true,
         complete: (result) => {
           const rawData = result.data;
 
-          // Extract time columns
           const timeColumns = Object.keys(rawData[0]).filter((key) =>
             /\d{1,2}\/\d{1,2}\/\d{4}/.test(key)
           );
 
-          // Transform data for Recharts
           const transformedData = timeColumns.map((date) => {
             const entry: { [key: string]: string | number } = { month: date };
             rawData.forEach((row: any) => {
@@ -48,7 +44,6 @@ const CsvChart: React.FC = () => {
             return entry;
           });
 
-          // Extract region names
           const regionNames = rawData.map((row: any) => row.RegionName);
 
           setRegions(regionNames);

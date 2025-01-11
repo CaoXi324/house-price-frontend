@@ -1,28 +1,29 @@
-import React, { useState, useEffect } from 'react';
-import Papa from 'papaparse';
-import {
-  Box,
-  Typography,
-  MenuItem,
-  Select,
-  Chip,
-  FormControl,
-  InputLabel,
-  OutlinedInput,
-} from '@mui/material';
+import { useEffect, useState } from "react";
+import Papa from "papaparse";
+import { Box, FormControl, InputLabel, MenuItem, OutlinedInput, Select, Chip } from "@mui/material";
 
 interface Region {
   RegionID: string;
-  SizeRank: string;
+  SizeRank: number;
   RegionName: string;
   RegionType: string;
   StateName: string;
 }
 
-const StateAndRegionSelector: React.FC = () => {
+interface StateAndRegionSelectorProps {
+  selectedStates: string[];
+  setSelectedStates: React.Dispatch<React.SetStateAction<string[]>>;
+  selectedRegions: string[];
+  setSelectedRegions: React.Dispatch<React.SetStateAction<string[]>>;
+}
+
+const StateAndRegionSelector: React.FC<StateAndRegionSelectorProps> = ({
+  selectedStates,
+  setSelectedStates,
+  selectedRegions,
+  setSelectedRegions,
+}) => {
   const [stateRegionMap, setStateRegionMap] = useState<Record<string, Region[]>>({});
-  const [selectedStates, setSelectedStates] = useState<string[]>([]);
-  const [selectedRegions, setSelectedRegions] = useState<string[]>([]);
   const [regions, setRegions] = useState<Region[]>([]);
 
   useEffect(() => {
@@ -71,7 +72,6 @@ const StateAndRegionSelector: React.FC = () => {
     fetchAndParseCSV();
   }, []);
 
-  // Update regions when the selected states change
   useEffect(() => {
     if (selectedStates.length > 0) {
       const allRegions = selectedStates.flatMap((state) => stateRegionMap[state] || []);
@@ -85,56 +85,53 @@ const StateAndRegionSelector: React.FC = () => {
 
   return (
     <Box sx={{ padding: 4, maxWidth: 600, margin: '0 auto' }}>
-      <Typography variant="h4" gutterBottom>
-        Multi-Select State and Region Selector
-      </Typography>
       <Box sx={{ display: 'flex', flexDirection: 'row', gap: 2 }}>
-      <FormControl fullWidth margin="normal">
-        <InputLabel id="state-selector-label">Select States</InputLabel>
-        <Select
-          labelId="state-selector-label"
-          multiple
-          value={selectedStates}
-          onChange={(e) => setSelectedStates(e.target.value as string[])}
-          input={<OutlinedInput label="Select States" />}
-          renderValue={(selected) => (
-            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-              {selected.map((value) => (
-                <Chip key={value} label={value} />
-              ))}
-            </Box>
-          )}
-        >
-          {Object.keys(stateRegionMap).map((state) => (
-            <MenuItem key={state} value={state}>
-              {state}
-            </MenuItem>
-          ))}
-        </Select>
-      </FormControl>
-      <FormControl fullWidth margin="normal" disabled={regions.length === 0}>
-        <InputLabel id="region-selector-label">Select Regions</InputLabel>
-        <Select
-          labelId="region-selector-label"
-          multiple
-          value={selectedRegions}
-          onChange={(e) => setSelectedRegions(e.target.value as string[])}
-          input={<OutlinedInput label="Select Regions" />}
-          renderValue={(selected) => (
-            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-              {selected.map((value) => (
-                <Chip key={value} label={value} />
-              ))}
-            </Box>
-          )}
-        >
-          {regions.map((region) => (
-            <MenuItem key={region.RegionID} value={region.RegionName}>
-              {region.RegionName} (SizeRank: {region.SizeRank})
-            </MenuItem>
-          ))}
-        </Select>
-      </FormControl>
+        <FormControl fullWidth margin="normal">
+          <InputLabel id="state-selector-label">Select States</InputLabel>
+          <Select
+            labelId="state-selector-label"
+            multiple
+            value={selectedStates}
+            onChange={(e) => setSelectedStates(e.target.value as string[])}
+            input={<OutlinedInput label="Select States" />}
+            renderValue={(selected) => (
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                {selected.map((value) => (
+                  <Chip key={value} label={value} />
+                ))}
+              </Box>
+            )}
+          >
+            {Object.keys(stateRegionMap).map((state) => (
+              <MenuItem key={state} value={state}>
+                {state}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+        <FormControl fullWidth margin="normal" disabled={regions.length === 0}>
+          <InputLabel id="region-selector-label">Select Regions</InputLabel>
+          <Select
+            labelId="region-selector-label"
+            multiple
+            value={selectedRegions}
+            onChange={(e) => setSelectedRegions(e.target.value as string[])}
+            input={<OutlinedInput label="Select Regions" />}
+            renderValue={(selected) => (
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                {selected.map((value) => (
+                  <Chip key={value} label={value} />
+                ))}
+              </Box>
+            )}
+          >
+            {regions.map((region) => (
+              <MenuItem key={region.RegionID} value={region.RegionName}>
+                {region.RegionName} (SizeRank: {region.SizeRank})
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
       </Box>
     </Box>
   );

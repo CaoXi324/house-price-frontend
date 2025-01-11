@@ -25,7 +25,12 @@ function App() {
         onStartDateChange={setStartDate} 
         onEndDateChange={setEndDate}
       />
-      <CsvChart />
+      <CsvChart 
+        selectedStates={selectedStates}
+        selectedRegions={selectedRegions}
+        startDate={startDate}
+        endDate={endDate}
+      />
     </>
   )
 }

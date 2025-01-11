@@ -17,7 +17,14 @@ import {
   Box 
 } from "@mui/material";
 
-const CsvChart: React.FC = () => {
+interface CsvChartProps {
+  startDate: Date;
+  endDate: Date;
+  selectedStates: string[];
+  selectedRegions: string[];
+}
+
+const CsvChart: React.FC<CsvChartProps> = ({startDate, endDate, selectedStates, selectedRegions}) => {
   const [chartData, setChartData] = useState<any[]>([]);
   const [regions, setRegions] = useState<string[]>([]);
 
@@ -36,15 +43,27 @@ const CsvChart: React.FC = () => {
             /\d{1,2}\/\d{1,2}\/\d{4}/.test(key)
           );
 
-          const transformedData = timeColumns.map((date) => {
+          const filteredTimeColumns = timeColumns.filter((date) => {
+            const parsedDate = new Date(date);
+            return parsedDate >= startDate && parsedDate <= endDate;
+          });
+
+          const filteredRawData = rawData.filter((row: any) => {
+            return (
+              (!selectedStates.length || selectedStates.includes(row.StateName)) &&
+              (!selectedRegions.length || selectedRegions.includes(row.RegionName))
+            );
+          });
+
+          const transformedData = filteredTimeColumns.map((date) => {
             const entry: { [key: string]: string | number } = { month: date };
-            rawData.forEach((row: any) => {
+            filteredRawData.forEach((row: any) => {
               entry[row.RegionName] = row[date];
             });
             return entry;
           });
 
-          const regionNames = rawData.map((row: any) => row.RegionName);
+          const regionNames = filteredRawData.map((row: any) => row.RegionName);
 
           setRegions(regionNames);
           setChartData(transformedData);
@@ -53,7 +72,7 @@ const CsvChart: React.FC = () => {
     };
 
     fetchData();
-  }, []);
+  }, [startDate, endDate, selectedStates, selectedRegions]);
 
   return (
     <Container maxWidth="lg">

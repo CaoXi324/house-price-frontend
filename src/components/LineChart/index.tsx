@@ -10,12 +10,15 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
-import { 
-  Container, 
-  Typography, 
+import {
+  Container,
+  Typography,
   Paper,
-  Box, 
-  Button
+  Box,
+  Button,
+  Radio,
+  FormControlLabel,
+  Switch,
 } from "@mui/material";
 import BarChartComponent from "../BarChart";
 
@@ -26,14 +29,20 @@ interface CsvLineChartProps {
   selectedRegions: string[];
 }
 
-const CsvLineChart: React.FC<CsvLineChartProps> = ({startDate, endDate, selectedStates, selectedRegions}) => {
+const CsvLineChart: React.FC<CsvLineChartProps> = ({
+  startDate,
+  endDate,
+  selectedStates,
+  selectedRegions,
+}) => {
   const [chartData, setChartData] = useState<any[]>([]);
   const [regions, setRegions] = useState<string[]>([]);
   const [selectedMonths, setSelectedMonths] = useState<string[]>([]);
+  const [showForecastData, setShowForecastData] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
-      const response = await fetch("/data1.csv");
+      const response = await fetch("/combined_data.csv");
       const csvText = await response.text();
 
       Papa.parse(csvText, {
@@ -42,9 +51,16 @@ const CsvLineChart: React.FC<CsvLineChartProps> = ({startDate, endDate, selected
         complete: (result) => {
           const rawData = result.data;
 
-          const timeColumns = Object.keys(rawData[0]).filter((key) =>
-            /\d{1,2}\/\d{1,2}\/\d{4}/.test(key)
-          );
+          let timeColumns: string[] = [];
+          if (showForecastData) {
+            timeColumns = Object.keys(rawData[0]).filter((key) =>
+              /\d{1,2}\/\d{1,2}\/\d{4}/.test(key)
+            );
+          } else {
+            timeColumns = Object.keys(rawData[0])
+              .filter((key) => /\d{1,2}\/\d{1,2}\/\d{4}/.test(key))
+              .slice(0, -5);
+          }
 
           const filteredTimeColumns = timeColumns.filter((date) => {
             const parsedDate = new Date(date);
@@ -53,8 +69,10 @@ const CsvLineChart: React.FC<CsvLineChartProps> = ({startDate, endDate, selected
 
           const filteredRawData = rawData.filter((row: any) => {
             return (
-              (!selectedStates.length || selectedStates.includes(row.StateName)) &&
-              (!selectedRegions.length || selectedRegions.includes(row.RegionName))
+              (!selectedStates.length ||
+                selectedStates.includes(row.StateName)) &&
+              (!selectedRegions.length ||
+                selectedRegions.includes(row.RegionName))
             );
           });
 
@@ -91,9 +109,7 @@ const CsvLineChart: React.FC<CsvLineChartProps> = ({startDate, endDate, selected
 
   const toggleMonthSelection = (month: string) => {
     setSelectedMonths((prev) =>
-      prev.includes(month)
-        ? prev.filter((m) => m !== month)
-        : [...prev, month]
+      prev.includes(month) ? prev.filter((m) => m !== month) : [...prev, month]
     );
   };
 
@@ -115,14 +131,34 @@ const CsvLineChart: React.FC<CsvLineChartProps> = ({startDate, endDate, selected
           House Price Trends
         </Typography>
         <Paper elevation={3} sx={{ p: 3 }}>
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={handleDownload}
-            sx={{ mb: 3 }}
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "center",
+              mt: 2,
+              mb: 2,
+              alignItems: "center",
+              gap: 2,
+            }}
           >
-            Download Data
-          </Button>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={handleDownload}
+            >
+              Download Data
+            </Button>
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={showForecastData}
+                  onChange={(e) => setShowForecastData(e.target.checked)}
+                  name="showForecast"
+                />
+              }
+              label="Show Forecast Data"
+            />
+          </Box>
           <ResponsiveContainer width="100%" height={500}>
             <LineChart data={chartData} onClick={handleXAxisClick}>
               <CartesianGrid strokeDasharray="3 3" />
@@ -135,7 +171,9 @@ const CsvLineChart: React.FC<CsvLineChartProps> = ({startDate, endDate, selected
                   key={region}
                   type="monotone"
                   dataKey={region}
-                  stroke={`#${Math.floor(Math.random() * 16777215).toString(16)}`}
+                  stroke={`#${Math.floor(Math.random() * 16777215).toString(
+                    16
+                  )}`}
                   activeDot={{ r: 8 }}
                 />
               ))}

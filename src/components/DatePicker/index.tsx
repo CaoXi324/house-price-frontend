@@ -36,6 +36,7 @@ const MonthRangePicker: React.FC<MonthRangePickerProps> = ({
         gap: 2,
         padding: 2,
         maxWidth: 400,
+        mt: 2,
       }}
     >
       <Typography variant="body1" textAlign="left">

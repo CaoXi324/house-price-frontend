@@ -29,7 +29,7 @@ const StateAndRegionSelector: React.FC<StateAndRegionSelectorProps> = ({
   useEffect(() => {
     const fetchAndParseCSV = async () => {
       try {
-        const response = await fetch('/data1.csv'); // Replace with your actual CSV path
+        const response = await fetch('/combined_data.csv');
         const csvText = await response.text();
 
         Papa.parse(csvText, {
@@ -84,7 +84,7 @@ const StateAndRegionSelector: React.FC<StateAndRegionSelectorProps> = ({
   }, [selectedStates, stateRegionMap]);
 
   return (
-    <Box sx={{ padding: 4, maxWidth: 600, margin: '0 auto' }}>
+    <Box sx={{ padding: 2, maxWidth: 600, margin: '0 auto' }}>
       <Box sx={{ display: 'flex', flexDirection: 'row', gap: 2 }}>
         <FormControl fullWidth margin="normal">
           <InputLabel id="state-selector-label">Select States</InputLabel>

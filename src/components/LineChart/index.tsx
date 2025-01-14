@@ -18,6 +18,7 @@ import {
   Button,
   FormControlLabel,
   Switch,
+  CircularProgress,
 } from "@mui/material";
 import BarChartComponent from "../BarChart";
 
@@ -38,61 +39,72 @@ const CsvLineChart: React.FC<CsvLineChartProps> = ({
   const [regions, setRegions] = useState<string[]>([]);
   const [selectedMonths, setSelectedMonths] = useState<string[]>([]);
   const [showForecastData, setShowForecastData] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
+      setLoading(true);
+
       const response = await fetch("/combined_data.csv");
       const csvText = await response.text();
 
-      Papa.parse(csvText, {
-        header: true,
-        dynamicTyping: true,
-        complete: (result: any) => {
-          const rawData = result.data;
+      try {
+        Papa.parse(csvText, {
+          header: true,
+          dynamicTyping: true,
+          complete: (result: any) => {
+            const rawData = result.data;
 
-          let timeColumns: string[] = [];
-          if (showForecastData) {
-            timeColumns = Object.keys(rawData[0]).filter((key) =>
-              /\d{1,2}\/\d{1,2}\/\d{4}/.test(key)
-            );
-          } else {
-            timeColumns = Object.keys(rawData[0])
-              .filter((key) => /\d{1,2}\/\d{1,2}\/\d{4}/.test(key))
-              .slice(0, -5);
-          }
+            let timeColumns: string[] = [];
+            if (showForecastData) {
+              timeColumns = Object.keys(rawData[0]).filter((key) =>
+                /\d{1,2}\/\d{1,2}\/\d{4}/.test(key)
+              );
+            } else {
+              timeColumns = Object.keys(rawData[0])
+                .filter((key) => /\d{1,2}\/\d{1,2}\/\d{4}/.test(key))
+                .slice(0, -5);
+              }
 
-          const filteredTimeColumns = timeColumns.filter((date) => {
-            const parsedDate = new Date(date);
-            return parsedDate >= startDate && parsedDate <= endDate;
-          });
-
-          const filteredRawData = rawData.filter((row: any) => {
-            return (
-              (!selectedStates.length ||
-                selectedStates.includes(row.StateName)) &&
-              (!selectedRegions.length ||
-                selectedRegions.includes(row.RegionName))
-            );
-          });
-
-          const transformedData = filteredTimeColumns.map((date) => {
-            const entry: { [key: string]: string | number } = { month: date };
-            filteredRawData.forEach((row: any) => {
-              entry[row.RegionName] = row[date];
+            const filteredTimeColumns = timeColumns.filter((date) => {
+              const parsedDate = new Date(date);
+              return parsedDate >= startDate && parsedDate <= endDate;
             });
-            return entry;
-          });
 
-          const regionNames = filteredRawData.map((row: any) => row.RegionName);
+            const filteredRawData = rawData.filter((row: any) => {
+              return (
+                (!selectedStates.length ||
+                  selectedStates.includes(row.StateName)) &&
+                (!selectedRegions.length ||
+                  selectedRegions.includes(row.RegionName))
+              );
+            });
 
-          setRegions(regionNames);
-          setChartData(transformedData);
-        },
-      });
+            const transformedData = filteredTimeColumns.map((date) => {
+              const entry: { [key: string]: string | number } = { month: date };
+              filteredRawData.forEach((row: any) => {
+                entry[row.RegionName] = row[date];
+              });
+              return entry;
+            });
+
+            const regionNames = filteredRawData.map(
+              (row: any) => row.RegionName
+            );
+
+            setRegions(regionNames);
+            setChartData(transformedData);
+          },
+        });
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      } finally {
+        setLoading(false);
+      }
     };
 
     fetchData();
-  }, [startDate, endDate, selectedStates, selectedRegions]);
+  }, [startDate, endDate, selectedStates, selectedRegions, showForecastData]);
 
   const handleDownload = () => {
     const csvString = Papa.unparse(chartData);
@@ -159,24 +171,31 @@ const CsvLineChart: React.FC<CsvLineChartProps> = ({
             />
           </Box>
           <ResponsiveContainer width="100%" height={500}>
-            <LineChart data={chartData} onClick={handleXAxisClick}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="month" />
-              <YAxis />
-              <Tooltip />
-              <Legend />
-              {regions.map((region) => (
-                <Line
-                  key={region}
-                  type="monotone"
-                  dataKey={region}
-                  stroke={`#${Math.floor(Math.random() * 16777215).toString(
-                    16
-                  )}`}
-                  activeDot={{ r: 8 }}
-                />
-              ))}
-            </LineChart>
+            {loading ? (
+              <div style={{ textAlign: "center", marginTop: "20px" }}>
+                <CircularProgress /> 
+                <p>Loading data...</p>
+              </div>
+            ) : (
+              <LineChart data={chartData} onClick={handleXAxisClick}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="month" />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                {regions.map((region) => (
+                  <Line
+                    key={region}
+                    type="monotone"
+                    dataKey={region}
+                    stroke={`#${Math.floor(Math.random() * 16777215).toString(
+                      16
+                    )}`}
+                    activeDot={{ r: 8 }}
+                  />
+                ))}
+              </LineChart>
+            )}
           </ResponsiveContainer>
         </Paper>
         <BarChartComponent data={filteredData} regions={regions} />

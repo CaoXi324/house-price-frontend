@@ -25,7 +25,7 @@ const MonthRangePicker: React.FC<MonthRangePickerProps> = ({
   onEndDateChange,
 }) => {
   const minDate = new Date(2000, 0, 31);
-  const maxDate = new Date(2023, 8, 30);
+  const maxDate = new Date(2024, 1, 31);
 
   return (
     <Box

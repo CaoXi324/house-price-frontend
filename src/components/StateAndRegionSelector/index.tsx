@@ -34,7 +34,7 @@ const StateAndRegionSelector: React.FC<StateAndRegionSelectorProps> = ({
 
         Papa.parse(csvText, {
           header: true,
-          complete: (results) => {
+          complete: (results: any) => {
             const map: Record<string, Region[]> = {};
 
             results.data.forEach((row: any) => {

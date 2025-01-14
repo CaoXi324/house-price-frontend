@@ -16,7 +16,6 @@ import {
   Paper,
   Box,
   Button,
-  Radio,
   FormControlLabel,
   Switch,
 } from "@mui/material";
@@ -48,7 +47,7 @@ const CsvLineChart: React.FC<CsvLineChartProps> = ({
       Papa.parse(csvText, {
         header: true,
         dynamicTyping: true,
-        complete: (result) => {
+        complete: (result: any) => {
           const rawData = result.data;
 
           let timeColumns: string[] = [];
